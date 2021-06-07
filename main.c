@@ -29,8 +29,48 @@ timer_callback(union sigval arg) {
   printf("Coorinates: [%d %d]\n", p->x, p->y);
 }
 
+void
+timer_demo() {
+  int ret;
+
+  struct sigevent evp;
+  memset(&evp, 0, sizeof(struct sigevent));
+
+  timer_t timer;
+  memset(&timer, 0, sizeof(timer_t));
+
+  evp.sigev_value.sigval_ptr = (void *)&global_point;
+  evp.sigev_notify = SIGEV_THREAD;
+  evp.sigev_notify_function = timer_callback;
+
+  ret = timer_create(CLOCK_REALTIME, &evp, &timer);
+
+  if(ret < 0) {
+    printf("Timer creation failed, errno: %d\n", errno);
+    exit(0);
+  }
+
+  struct timerspec ts;
+
+  ts.it_value.tv_sec = 5;
+  ts.it_value.tv_usec = 0;
+
+  ts.it_interval.tv_sec = 0;
+  ts.it_interval.tv_usec = 0;
+
+  ret = timer_settime(timer, 0, &ts, NULL);
+
+  if(ret < 0) {
+    printf("Timer start failed, errno: %d\n", errno);
+    exit(0);
+  } else {
+    print_current_sys_time();
+    printf("Timer alarmed succesfully\n");
+  }
+}
+
 int main(int argc, char **argv) {
-  //print_current_sys_time();
+  timer_demo();
 
   //pause();
 
